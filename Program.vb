@@ -9,7 +9,7 @@ Module Program
     Sub Main(args As String())
         Dim Ans As UInt64
 
-        If Alg1a.P(17000, Ans) Then 'n=16963•Ó‚è‚ª•Ï
+        If Alg1a.P(100000000, Ans) Then
             Console.WriteLine("Overflow")
         End If
         'Alg2.P(162)  ' 1<=n<=162  n>162 <--- Overflow
@@ -189,9 +189,10 @@ Module Alg1a
         Dim uSN() As UInt64 = {1}
         Dim uSPL As UInt32 = 1
         Dim uSPLck As UInt64
-        Dim uSP As UInt32 = 0
-        Dim uSCP As UInt32
-        Dim uSCNP As UInt32
+        Dim uSP As UInt64 = 0
+        Dim uSCP As UInt64
+        Dim uSCNP As UInt64
+        Dim uSCPE As UInt64
 
         Dim uADN As UInt16
         Dim uADCN As UInt16
@@ -210,10 +211,12 @@ Module Alg1a
             uADN = uSN(uSP)
 
             If P2 = PC + uADN Then
+                Console.WriteLine("Rebuild Sieve...")
                 If Not fSOV Then
                     uSPLck = uSPL * PP - 1
                     If UInt32.MaxValue < uSPLck Then
                         fSOV = True
+                        Console.WriteLine("Sieve Clip")
                     End If
                 End If
 
@@ -227,6 +230,9 @@ Module Alg1a
                         Next
                     Next
                     uSPL *= PP
+                    uSCPE = uSPL
+                Else
+                    uSCPE = uSPL - uSP
                 End If
 
                 uSCP = uSP
@@ -254,7 +260,7 @@ Module Alg1a
                     End If
                     uADCN = uSN(uSCP)
                     J += uADCN
-                Loop While J < uSPL
+                Loop While J < uSCPE
                 bCP = True
             End If
 
