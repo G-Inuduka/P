@@ -7,11 +7,10 @@ Module Program
     REM ********************************************************************************
 
     Sub Main(args As String())
+        Dim SieveSize As UInt32 = 2 ^ 30 - 1
         Dim Ans As UInt64
 
-        If Alg1a.P(100000000, Ans) Then
-            Console.WriteLine("Overflow")
-        End If
+        Alg1a.P(1000000000, SieveSize, Ans) 'SieveSize=2^30-1:1<=n<=12283531
         'Alg2.P(162)  ' 1<=n<=162  n>162 <--- Overflow
         'Alg1.P(146)  ' 1<=n<=146  n>146 <--- Overflow
     End Sub
@@ -173,12 +172,11 @@ Module Alg1a
     REM *   6,469,693,230 : Sieve 2 & 3 & 5 & 7 & 11 & 13 & 17 & 19 & 23 & 29          *
     REM *   And more...                                                                *
     REM ********************************************************************************
-    Function P(ByRef N As UInt64, ByRef Ans As UInt64) As Boolean
+    Function P(ByRef N As UInt64, ByVal SieveSize As UInt32, ByRef Ans As UInt64) As Boolean
         Ans = 0
         P = False
         If N < 1 Then Exit Function
 
-        Dim FP() As UInt64
         Dim FPP As UInt64 = 0
 
         Dim PC As UInt64 = 1
@@ -186,7 +184,6 @@ Module Alg1a
         Dim uCP As UInt64 = 0
         Dim P2 As UInt64 = 0
 
-        Dim uSN() As UInt64 = {1}
         Dim uSPL As UInt32 = 1
         Dim uSPLck As UInt64
         Dim uSP As UInt64 = 0
@@ -207,29 +204,38 @@ Module Alg1a
         Dim fSOV As Boolean = False
         Dim bCP As Boolean = True
 
+        Dim uSN(SieveSize) As UInt32
+        uSN(0) = 1
+        Dim FP(SieveSize) As UInt64
+
         Do While I <= N
             uADN = uSN(uSP)
 
             If P2 = PC + uADN Then
-                Console.WriteLine("Rebuild Sieve...")
+                Console.WriteLine("Rebuild Sieve..." & vbTab & I & vbTab & P2)
                 If Not fSOV Then
                     uSPLck = uSPL * PP - 1
-                    If UInt32.MaxValue < uSPLck Then
+                    If SieveSize < uSPLck Then
                         fSOV = True
                         Console.WriteLine("Sieve Clip")
                     End If
                 End If
 
                 If Not fSOV Then
-                    ReDim Preserve uSN(uSPL * PP - 1)
-                    L = uSPL
-                    For J = 2 To PP
-                        For K = 0 To uSPL - 1
-                            uSN(L) = uSN(K)
-                            L += 1
+                    Do
+                        L = uSPL
+                        For J = 2 To PP
+                            For K = 0 To uSPL - 1
+                                uSN(L) = uSN(K)
+                                L += 1
+                                If SieveSize < L Then
+                                    uSPL = SieveSize
+                                    Exit Do
+                                End If
+                            Next
                         Next
-                    Next
-                    uSPL *= PP
+                        uSPL *= PP
+                    Loop While False
                     uSCPE = uSPL
                 Else
                     uSCPE = uSPL - uSP
@@ -275,7 +281,6 @@ Module Alg1a
                 uSP -= uSPL
             End If
 
-            ReDim Preserve FP(FPP)
             FP(FPP) = PC
             FPP += 1
 
@@ -286,9 +291,12 @@ Module Alg1a
                 bCP = False
             End If
 
-            Console.WriteLine("P(" & I.ToString & ")=" & PC.ToString)
+            Console.WriteLine("P(" & I & ")=" & PC)
             I += 1
         Loop
+        If P Then
+            Console.WriteLine("Sieve is end.")
+        End If
         Ans = PC
     End Function
 End Module
